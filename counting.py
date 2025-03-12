@@ -1,3 +1,4 @@
+#making sure everyone signed up for exactly two classes
 import csv
 count=0
 too_much = []
