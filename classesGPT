@@ -1,0 +1,139 @@
+import csv
+
+# Open the input file
+han = open('Responses.csv')
+file = csv.reader(han, delimiter=';')
+
+# Lists
+amclist = []
+pmclist = []
+am_full_name = []
+pm_full_name = []
+repeated_names = []
+
+# Functions to get names
+def amget_name(entry):
+    first_name = entry[0]
+    last_name = entry[1]
+    name = first_name + ' ' + last_name
+    am_full_name.append(name)
+
+def pmget_name(entry):
+    first_name = entry[0]
+    last_name = entry[1]
+    name = first_name + ' ' + last_name
+    pm_full_name.append(name)
+
+# Function to write sublist to CSV
+def write_sublist_to_csv(sublist):
+    # Use the class title (first element of sublist) for the filename
+    class_title = sublist[0].replace(" ", "_")  # Replace spaces with underscores for valid filenames
+    filename = f"{class_title}.csv"
+    
+    # Prepare data for CSV (only names from sublist entries, no header)
+    csv_data = []
+    for entry in sublist[1:]:  # Skip the title (sublist[0])
+        csv_data.append([entry[0], entry[1]])  # First and last name only
+    
+    # Write to CSV without header
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(csv_data)
+    
+    # Return total number of students (excluding the title)
+    return len(sublist) - 1
+
+# Trimming classes
+classes = next(file)
+for title in classes[2:7]:
+    amclist.append([title])
+for title in classes[7:]:
+    pmclist.append([title])
+
+# Looping through file
+for row in file:
+    if row[2] == '81':
+        continue
+    if row[2] == '1':
+        amclist[0].append(row)
+    if row[3] == '1':
+        amclist[1].append(row)
+    if row[4] == '1':
+        amclist[2].append(row)
+    if row[5] == '1':
+        amclist[3].append(row)
+    if row[6] == '1':
+        amclist[4].append(row)  
+    if row[7] == '1':
+        pmclist[0].append(row)
+    if row[8] == '1':
+        pmclist[1].append(row)
+    if row[9] == '1':
+        pmclist[2].append(row)
+    if row[10] == '1':
+        pmclist[3].append(row)
+    if row[11] == '1':
+        pmclist[4].append(row)
+
+    # Check if everyone is signed up for 2 classes
+    check = 0
+    for cell in row[2:]:
+        if cell != '1':
+            check = check + 1
+    if check > 8:
+        print(row)
+
+# Create CSVs and calculate totals for AM classes
+am_totals = {}
+for i, sublist in enumerate(amclist):
+    total = write_sublist_to_csv(sublist)
+    am_totals[sublist[0]] = total
+
+# Create CSVs and calculate totals for PM classes
+pm_totals = {}
+for i, sublist in enumerate(pmclist):
+    total = write_sublist_to_csv(sublist)
+    pm_totals[sublist[0]] = total
+
+# Print totals
+print("\nAM Class Totals:")
+for class_name, total in am_totals.items():
+    print(f"{class_name}: {total} students")
+
+print("\nPM Class Totals:")
+for class_name, total in pm_totals.items():
+    print(f"{class_name}: {total} students")
+
+# Creating lists of AM and PM names to check for duplicates
+for sublist in amclist:
+    for entry in sublist[1:]:
+        amget_name(entry)
+for sublist in pmclist:
+    for entry in sublist[1:]:
+        pmget_name(entry)
+am_full_name = sorted(am_full_name)
+pm_full_name = sorted(pm_full_name)
+
+# Check for repeated names in AM or PM classes
+goob = None
+boog = None
+
+for name in am_full_name:
+    if name != goob:
+        goob = name
+    else:
+        repeated_names.append(name)
+for name in pm_full_name:
+    if name != boog:
+        boog = name
+    else:
+        repeated_names.append(name)
+
+# Print repeated names if any
+if repeated_names:
+    print("\nRepeated Names (signed up for multiple classes in same period):")
+    for name in set(repeated_names):  # Use set to avoid duplicates in output
+        print(name)
+
+# Close the input file
+han.close()
